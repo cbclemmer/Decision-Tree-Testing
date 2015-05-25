@@ -1,0 +1,72 @@
+[
+  {
+    "Film":"1",
+    "Country":"USA",
+    "Big Star":"yes",
+    "Genre":"scifi",
+    "Success/Failure":"Success"
+  },
+  {
+    "Film":"2",
+    "Country":"USA",
+    "Big Star":"no",
+    "Genre":"comedy",
+    "Success/Failure":"Failure"
+  },
+  {
+    "Film":"3",
+    "Country":"USA",
+    "Big Star":"yes",
+    "Genre":"comedy",
+    "Success/Failure":"Success"
+  },
+  {
+    "Film":"4",
+    "Country":"Europe",
+    "Big Star":"no",
+    "Genre":"comedy",
+    "Success/Failure":"Success"
+  },
+  {
+    "Film":"5",
+    "Country":"Europe",
+    "Big Star":"yes",
+    "Genre":"scifi",
+    "Success/Failure":"Failure"
+  },
+  {
+    "Film":"6",
+    "Country":"Europe",
+    "Big Star":"yes",
+    "Genre":"romance",
+    "Success/Failure":"Failure"
+  },
+  {
+    "Film":"7",
+    "Country":"Australia",
+    "Big Star":"yes",
+    "Genre":"comedy",
+    "Success/Failure":"Failure"
+  },
+  {
+    "Film":"8",
+    "Country":"Brazil",
+    "Big Star":"no",
+    "Genre":"scifi",
+    "Success/Failure":"Failure"
+  },
+  {
+    "Film":"9",
+    "Country":"Europe",
+    "Big Star":"yes",
+    "Genre":"comedy",
+    "Success/Failure":"Success"
+  },
+  {
+    "Film":"10",
+    "Country":"USA",
+    "Big Star":"yes",
+    "Genre":"comedy",
+    "Success/Failure":"Success"
+  }
+]
