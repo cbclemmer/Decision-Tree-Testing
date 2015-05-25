@@ -1,3 +1,4 @@
+import pickle
 import math
 import json
 
@@ -298,49 +299,73 @@ def testData():
         for obj in test:
             print(obj[index]+": "+level(obj, n))
             
-# The success attribute
-success = "Success/Failure"
-# the index attribute (unique ID)
-index = "Film"
-# The data to load
-data = json.loads(open("./films.json").read())
-test = json.loads(open("./test.json").read())
-# get all the possible outcomes of the success attribute
-successOutcomes = []
-for obj in data:
-    successOutcomes.append(obj[success])
-successOutcomes = set(successOutcomes)
-# create a dummy root node
-r = root()
-gain = 0
-highestGain = ["", 0]
-skip = False
-# put all the attributes of data into a list, making sure the ones to ignore are not on that list
-ign = [index, success]
-attributes = []
-for key in data[0].keys():
-    for ig in ign:
-        if ig == key:
-            skip = True
-    if skip == False:
-        attributes.append(key)
-    skip = False
-# get the initital highest gain
-for attribute in attributes:
-    gain = getInformationGain(root, attribute)
-    if gain > highestGain[1]:
-        highestGain[0] = attribute
-        highestGain[1] = gain
-# create a new node that splits with the attribute with the highest gain
-n = att(highestGain[0], r, "")
-# fill the row if that node
-fillRow(n, [success, n.attribute, 'Film'])
-# Print the resulting tree
-print(n.attribute)
-n.printt(0)
-testData()
 
 
+print("Decision Tree Interface")
+while True:
+    print("1. Create Tree")
+    print("2. Load Tree")
+    print("3. Save Tree")
+    print("4. Test Data")
+    cmd = input("Cmd: ")
+    if cmd == '1':
+        ign = []
+        data = json.loads(open(input("\nSpecify file: ")).read())
+        # The success attribute
+        success = input("success attribute: ")
+        # the index attribute (unique ID)
+        index = input("index attribute: ")
+        while cmd != "quit":
+            cmd = input("tag to ignore(type quit to skip): ")
+            if cmd != "quit":
+                ign.append(cmd)
+        # get all the possible outcomes of the success attribute
+        successOutcomes = []
+        for obj in data:
+            successOutcomes.append(obj[success])
+        successOutcomes = set(successOutcomes)
+        # create a dummy root node
+        r = root()
+        gain = 0
+        highestGain = ["", 0]
+        skip = False
+        # put all the attributes of data into a list, making sure the ones to ignore are not on that list
+        ign = [index, success]
+        attributes = []
+        for key in data[0].keys():
+            for ig in ign:
+                if ig == key:
+                    skip = True
+            if skip == False:
+                attributes.append(key)
+            skip = False
+        # get the initital highest gain
+        for attribute in attributes:
+            gain = getInformationGain(root, attribute)
+            if gain > highestGain[1]:
+                highestGain[0] = attribute
+                highestGain[1] = gain
+        # create a new node that splits with the attribute with the highest gain
+        n = att(highestGain[0], r, "")
+        # fill the row if that node
+        fillRow(n, [success, n.attribute, 'Film'])
+        # Print the resulting tree
+        print("\n\n")
+        print(n.attribute)
+        n.printt(0)
+        print("\n\n")
+    elif cmd == '2':
+        try:
+            n
+        except NameError:
+            print("Tree is not loaded")
+        else:
+            print (n)
+            n = pickle.load(open(input("file: "), "rb"))
+    elif cmd =='3':
+        pickle.dump(n, open(input("file: "), "wb"))
+        print("tree: ")
+        n.printt(0)
 
 
 
