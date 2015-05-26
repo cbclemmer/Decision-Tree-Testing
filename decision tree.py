@@ -1,7 +1,7 @@
 import pickle
 import math
 import json
-
+import os
 
 # The top level class, this basically is a holder for an attribute or value
 class node:
@@ -332,9 +332,9 @@ def loadTree(o, nod):
             
 data = {}
 loaded = False
-print("Decision Tree Interface")
+print("\n\nDecision Tree Interface")
 while True:
-    print("\n\n1. Create Tree")
+    print("\n1. Create Tree")
     print("2. Show Tree")
     print("3. Load Tree")
     print("4. Save Tree")
@@ -343,29 +343,27 @@ while True:
     cmd = input("Cmd: ")
     if cmd == '1':
         ign = []
+        print("\nTraining sets:\n")
+        for fil in os.listdir("training"):
+        	print (fil)
         try:
-            data_json = "films.json"
-            # data_json = input("\nSpecify file: ")
+            data_json = "training/"+input("\nSpecify file: ")
             data = json.loads(open(data_json).read())
         except IOError:
             print ("\nFile does not exist\n")
         else:
-            show  = ""
-            # show = input("show attributes (y/n): ")
+            show = input("show attributes (y/n): ")
             if show == 'y' or show == 'Y':
                 print ("\n")
                 for attribute in data[0].keys():
                     print(attribute)
                 print ("\n")
             # The success attribute
-            success = "Success/Failure"
-            # success = input("success attribute: ")
+            success = input("success attribute: ")
             # the index attribute (unique ID)
-            index = "Film"
-            # index = input("index attribute: ")
+            index = input("index attribute: ")
             while cmd != "quit":
-                cmd = "quit"
-                # cmd = input("attribute to ignore(type quit to skip): ")
+                cmd = input("attribute to ignore(type quit to skip): ")
                 if cmd != "quit":
                     ign.append(cmd)
             # get all the possible outcomes of the success attribute
@@ -397,7 +395,7 @@ while True:
             # create a new node that splits with the attribute with the highest gain
             n = att(highestGain[0], r, "")
             # fill the row if that node
-            fillRow(n, [success, n.attribute, 'Film'])
+            fillRow(n, [success, n.attribute, index])
             # Print the resulting tree
             print("\n\n")
             print(n.attribute)
@@ -406,13 +404,24 @@ while True:
             loaded = True
     elif cmd == '2':
         if loaded == True:
+            print("\nTree:\n"+n.attribute)
             n.printt(0)
         else:
             print("\nTree not loaded")
     # Load tree
     elif cmd == '3':
+        print("\nSaved trees:\n")
+        for fil in os.listdir("trees"):
+            print (fil)
+        print("\n")
         try:
-            ob = pickle.load(open(input("file: "), "rb"))
+            fil = input("file: ")
+            if fil.split(".")[1] == "sav":
+                ob = pickle.load(open("trees/"+fil, "rb"))
+            else:
+                print("Incorrect format")
+                # Try to open something that won't be there so an error gets thrown
+                ob = pickle.load(open("aaaaaaaaaaaaaaa", "rb"))
         except IOError:
             print ("\nFile does not exist\n")
         else:
@@ -441,13 +450,9 @@ while True:
                 'children': save,
                 'ign': ign
             }
-            pickle.dump(obj, open(input("file: "), "wb"))
+            pickle.dump(obj, open("trees/"+input("file: ")+".sav", "wb"))
             print("\nTree Saved successfully\n")
         else:
             print("\nTree not Loaded\n")
     elif cmd == '6':
         break
-
-
-
-
