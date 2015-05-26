@@ -294,13 +294,13 @@ def level(obj, nod):
         if nod.typ == "val":
             return nod.outcome
         elif nod.typ == "att":
-            for value in getValues(nod.attribute):
+            for value in nod.children[nod].keys():
                 if obj[nod.attribute] == value:
                     return level(obj, nod.children[nod][value])
     
 def testData():
         for obj in test:
-            print(obj[index]+": "+level(obj, n))
+            print(obj[index]+": "+str(level(obj, n)))
             
 def getChildren(s, nod):
     for value in nod.children[nod].keys():
@@ -454,5 +454,23 @@ while True:
             print("\nTree Saved successfully\n")
         else:
             print("\nTree not Loaded\n")
+    elif cmd == '5':
+        if loaded == True:
+            print("\nTesting data:\n")
+            for fil in os.listdir("testing"):
+                print (fil)
+            testing_json = "testing/"+input("\nSpecify file: ")
+            if testing_json.split(".")[1] == "json" or testing_json.split(".")[1] == "JSON":
+                try:
+                    test = json.loads(open(testing_json).read())
+                except IOError:
+                    print("\nFile does not exist")
+                else:
+                    testData()
+            else:
+                print("\nThat is not a json file\n")
+                
+        else:
+            print("\nTree not loaded")
     elif cmd == '6':
         break
