@@ -19,14 +19,15 @@ class root(node):
     outcomes = {}
     entropy = 0
     def __init__(self):
-        # initialize the outcomes
-        for obj in data:
-            self.outcomes[obj[success]] = 0
-        # count the outcomes
-        for obj in data:
-            self.outcomes[obj[success]] += 1
-        # get the entropy of the root
-        self.entropy = getEntropy(self.outcomes)
+        if data != {}:
+            # initialize the outcomes
+            for obj in data:
+                self.outcomes[obj[success]] = 0
+            # count the outcomes
+            for obj in data:
+                self.outcomes[obj[success]] += 1
+            # get the entropy of the root
+            self.entropy = getEntropy(self.outcomes)
     
     # sets the only child to the root
     def setChild(self, child):
@@ -57,19 +58,20 @@ class att(node):
             self.parentSet = False
         else:
             self.parentValue = value
-        # get the outcomes
-        for sOutcome in successOutcomes:
-            self.outcomes[sOutcome] = 0
-        # get the possible values of this attribute
-        values = getValues(attribute)
-        # populate the outcomes
-        for obj in data:
-            for value in values:
-                for sOutcome in successOutcomes:
-                    if testOutcome(obj, self, value) == True and obj[success] == sOutcome:
-                        self.outcomes[sOutcome] += 1
-        # get the entropy determined by the outcomes
-        self.entropy = getEntropy(self.outcomes)
+        if data != {}:
+            # get the outcomes
+            for sOutcome in successOutcomes:
+                self.outcomes[sOutcome] = 0
+            # get the possible values of this attribute
+            values = getValues(attribute)
+            # populate the outcomes
+            for obj in data:
+                for value in values:
+                    for sOutcome in successOutcomes:
+                        if testOutcome(obj, self, value) == True and obj[success] == sOutcome:
+                            self.outcomes[sOutcome] += 1
+            # get the entropy determined by the outcomes
+            self.entropy = getEntropy(self.outcomes)
         
     # add a child node to this node
     def addChild(self, nod, child, value):
@@ -93,6 +95,7 @@ class val(node):
     typ = "val"
     value = ""
     outcomes = {}
+    parentSet = True
     def __init__(self, outcome, parent, value):
         self.outcome = outcome
         self.parent = parent
@@ -299,73 +302,151 @@ def testData():
         for obj in test:
             print(obj[index]+": "+level(obj, n))
             
+def getChildren(s, nod):
+    for value in nod.children[nod].keys():
+        child = nod.children[nod][value]
+        if child.typ == 'val':
+            out = child.outcome
+            # print(s[attribute])
+            s['children'][value] = {
+                "type": "val",
+                "outcome": out
+            }
+        elif child.typ == 'att':
+            att = child.attribute
+            s['children'][value] = {
+                "type": "att",
+                "children": {},
+                "attribute": att
+            }
+            getChildren(s['children'][value], nod.children[nod][value])
 
-
+def loadTree(o, nod):
+    for key in o.keys():
+        if o[key]['type'] == "val":
+            nod.addChild(nod, val(o[key]['outcome'], nod, key), key)
+        elif o[key]['type'] == "att":
+            nod.addChild(nod, att(o[key]['attribute'], nod, key), key)
+            loadTree(o[key]['children'], nod.children[nod][key])
+            
+            
+data = {}
+loaded = False
 print("Decision Tree Interface")
 while True:
-    print("1. Create Tree")
-    print("2. Load Tree")
-    print("3. Save Tree")
-    print("4. Test Data")
+    print("\n\n1. Create Tree")
+    print("2. Show Tree")
+    print("3. Load Tree")
+    print("4. Save Tree")
+    print("5. Test Data")
+    print("6. Quit")
     cmd = input("Cmd: ")
     if cmd == '1':
         ign = []
-        data = json.loads(open(input("\nSpecify file: ")).read())
-        # The success attribute
-        success = input("success attribute: ")
-        # the index attribute (unique ID)
-        index = input("index attribute: ")
-        while cmd != "quit":
-            cmd = input("tag to ignore(type quit to skip): ")
-            if cmd != "quit":
-                ign.append(cmd)
-        # get all the possible outcomes of the success attribute
-        successOutcomes = []
-        for obj in data:
-            successOutcomes.append(obj[success])
-        successOutcomes = set(successOutcomes)
-        # create a dummy root node
-        r = root()
-        gain = 0
-        highestGain = ["", 0]
-        skip = False
-        # put all the attributes of data into a list, making sure the ones to ignore are not on that list
-        ign = [index, success]
-        attributes = []
-        for key in data[0].keys():
-            for ig in ign:
-                if ig == key:
-                    skip = True
-            if skip == False:
-                attributes.append(key)
-            skip = False
-        # get the initital highest gain
-        for attribute in attributes:
-            gain = getInformationGain(root, attribute)
-            if gain > highestGain[1]:
-                highestGain[0] = attribute
-                highestGain[1] = gain
-        # create a new node that splits with the attribute with the highest gain
-        n = att(highestGain[0], r, "")
-        # fill the row if that node
-        fillRow(n, [success, n.attribute, 'Film'])
-        # Print the resulting tree
-        print("\n\n")
-        print(n.attribute)
-        n.printt(0)
-        print("\n\n")
-    elif cmd == '2':
         try:
-            n
-        except NameError:
-            print("Tree is not loaded")
+            data_json = "films.json"
+            # data_json = input("\nSpecify file: ")
+            data = json.loads(open(data_json).read())
+        except IOError:
+            print ("\nFile does not exist\n")
         else:
-            print (n)
-            n = pickle.load(open(input("file: "), "rb"))
-    elif cmd =='3':
-        pickle.dump(n, open(input("file: "), "wb"))
-        print("tree: ")
-        n.printt(0)
+            show  = ""
+            # show = input("show attributes (y/n): ")
+            if show == 'y' or show == 'Y':
+                print ("\n")
+                for attribute in data[0].keys():
+                    print(attribute)
+                print ("\n")
+            # The success attribute
+            success = "Success/Failure"
+            # success = input("success attribute: ")
+            # the index attribute (unique ID)
+            index = "Film"
+            # index = input("index attribute: ")
+            while cmd != "quit":
+                cmd = "quit"
+                # cmd = input("attribute to ignore(type quit to skip): ")
+                if cmd != "quit":
+                    ign.append(cmd)
+            # get all the possible outcomes of the success attribute
+            successOutcomes = []
+            for obj in data:
+                successOutcomes.append(obj[success])
+            successOutcomes = set(successOutcomes)
+            # create a dummy root node
+            r = root()
+            gain = 0
+            highestGain = ["", 0]
+            skip = False
+            # put all the attributes of data into a list, making sure the ones to ignore are not on that list
+            ign = [index, success]
+            attributes = []
+            for key in data[0].keys():
+                for ig in ign:
+                    if ig == key:
+                        skip = True
+                if skip == False:
+                    attributes.append(key)
+                skip = False
+            # get the initital highest gain
+            for attribute in attributes:
+                gain = getInformationGain(root, attribute)
+                if gain > highestGain[1]:
+                    highestGain[0] = attribute
+                    highestGain[1] = gain
+            # create a new node that splits with the attribute with the highest gain
+            n = att(highestGain[0], r, "")
+            # fill the row if that node
+            fillRow(n, [success, n.attribute, 'Film'])
+            # Print the resulting tree
+            print("\n\n")
+            print(n.attribute)
+            n.printt(0)
+            print("\n\n")
+            loaded = True
+    elif cmd == '2':
+        if loaded == True:
+            n.printt(0)
+        else:
+            print("\nTree not loaded")
+    # Load tree
+    elif cmd == '3':
+        try:
+            ob = pickle.load(open(input("file: "), "rb"))
+        except IOError:
+            print ("\nFile does not exist\n")
+        else:
+            print(ob["children"]["root"]['attribute'])
+            success = ob['success']
+            index = ob['index']
+            ign = ob['ign']
+            r = root()
+            n = att(ob["children"]["root"]['attribute'], r, "")
+            loadTree(ob["children"]["root"]['children'], n)
+            loaded = True
+            print("\nTree Loaded Successfully\n")
+    # Save tree
+    elif cmd =='4':
+        if loaded == True:
+            save = {}
+            save["root"] = {
+                "type": "att",
+                "attribute": n.attribute,
+                "children": {}
+            }
+            getChildren(save['root'], n)
+            obj = {
+                'success': success,
+                'index': index,
+                'children': save,
+                'ign': ign
+            }
+            pickle.dump(obj, open(input("file: "), "wb"))
+            print("\nTree Saved successfully\n")
+        else:
+            print("\nTree not Loaded\n")
+    elif cmd == '6':
+        break
 
 
 

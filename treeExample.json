@@ -1,0 +1,48 @@
+{
+    "root": {
+        "type": "att",
+        "attribute": "country",
+        "children": {
+            "Australia": {
+                "type": "val",
+                "outcome": "Failure"
+            },
+            "Brazil": {
+                "type": "val",
+                "outcome": "Failure"
+            },
+            "Europe": {
+                "type": "att",
+                "attribute": "Genre",
+                "children": {
+                    "comedy": {
+                        "type": "val",
+                        "outcome": "Success"
+                    },
+                    "scifi": {
+                        "type": "val",
+                        "outcome": "Failure"
+                    },
+                    "romance": {
+                        "type": "val",
+                        "outcome": "Failure"
+                    }
+                }
+            },
+            "USA": {
+                "type": "att",
+                "attribute": "Big Star",
+                "children": {
+                    "yes": {
+                        "type": "val",
+                        "outcome": "Success"
+                    },
+                    "no": {
+                        "type": "val",
+                        "outcome": "Failure"
+                    }
+                }
+            }
+        }
+    }
+}
