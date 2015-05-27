@@ -199,8 +199,6 @@ def testOutcome(obj, nod, outcome):
 # Fill a set of values with nodes, whether they are
 # attributes or values
 def fillRow(nod, ignore):
-    print (nod.attribute)
-    print (ignore)
     # get all the values for this attribute
     values = getValues(nod.attribute)
     # the gains show a detailed list of all the gains
