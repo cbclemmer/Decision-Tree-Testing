@@ -82,12 +82,17 @@ class att(node):
         depth += 1
         for child in self.children[self].keys():
             for d in range(0, depth):
-                    print("\t", end="")
+                print("\t", end="")
             if self.children[self][child].typ == "att":
                 print(self.children[self][child].parentValue+": "+self.children[self][child].attribute)
                 self.children[self][child].printt(depth)
             elif self.children[self][child].typ == "val":
-                print(self.children[self][child].parentValue+": "+str(self.children[self][child].outcome))
+                print(self.children[self][child].parentValue+": "+str(self.children[self][child].outcome+" "), end="")
+                if self.children[self][child].percent != 100:
+                    print(str(self.children[self][child].percent)+"%")
+                else:
+                    print("")
+                    
                 
 # a value node, this much simpler becuse it
 # basically just has to hold a value and have a parent
@@ -96,6 +101,7 @@ class val(node):
     value = ""
     outcomes = {}
     parentSet = True
+    percent = 100
     def __init__(self, outcome, parent, value):
         self.outcome = outcome
         self.parent = parent
@@ -193,6 +199,8 @@ def testOutcome(obj, nod, outcome):
 # Fill a set of values with nodes, whether they are
 # attributes or values
 def fillRow(nod, ignore):
+    print (nod.attribute)
+    print (ignore)
     # get all the values for this attribute
     values = getValues(nod.attribute)
     # the gains show a detailed list of all the gains
@@ -211,20 +219,21 @@ def fillRow(nod, ignore):
         skip = False
     # Go through each value to determine if all
     # of the objects for this value result in one outcome
+    valOutcomes = {}
     for value in values:
-        valOutcomes = {}
+        valOutcomes[value] = {}
         total = 0
         out = ""
         for sOutcome in successOutcomes:
-            valOutcomes[sOutcome] = 0
+            valOutcomes[value][sOutcome] = 0
         for obj in data:
             for sOutcome in successOutcomes:
                 if testOutcome(obj, nod, value) and obj[success] == sOutcome:
-                    valOutcomes[sOutcome] += 1
-        for outcome in valOutcomes.keys():
-            total += valOutcomes[outcome]
-        for outcome in valOutcomes.keys():
-            if valOutcomes[outcome] == total:
+                    valOutcomes[value][sOutcome] += 1
+        for outcome in valOutcomes[value].keys():
+            total += valOutcomes[value][outcome]
+        for outcome in valOutcomes[value].keys():
+            if valOutcomes[value][outcome] == total:
                 out = outcome
                 break
         # if it is all one outcome, create a value node at that value
@@ -247,7 +256,7 @@ def fillRow(nod, ignore):
         highest = {}
         for value in gains.keys():
             # initialize the value with -2 gain (Nothing can have this low of a gain)
-            highest[value] = {'gain': -2}
+            highest[value] = {'gain': -2, 'value': value, 'attribute': ""}
             # determine which attribute is the highest
             for attribute in gains[value].keys():
                 obj = {
@@ -272,10 +281,8 @@ def fillRow(nod, ignore):
                 # check which one of the gains is higher and create a node on that one
                 if arr[a]['gain'] > arr[a-1]['gain']:
                     nod.addChild(nod, att(arr[a]['attribute'], nod, arr[a]['value']), arr[a]['value'])
-                    fillRow(nod.children[arr[a]['value']], ignore[:])
                 elif arr[a-1]['gain'] > arr[a]['gain']:
                     nod.addChild(nod, att(arr[a-1]['attribute'], nod, arr[a-1]['value']), arr[a-1]['value'])
-                    fillRow(nod.children[arr[a-1]['value']], ignore[:])
                 # destroy all of the gains of that attribute
                 for value in gains.keys():
                     gains[value].pop(attribute)
@@ -288,8 +295,27 @@ def fillRow(nod, ignore):
         if a['gain'] != -2:
             ignore.append(a['attribute'])
             nod.addChild(nod, att(a['attribute'], nod, a['value']), a['value'])
-            fillRow(nod.children[nod][a['value']], ignore[:])
-        
+    if valOutcomes.keys() != nod.children[nod].keys():
+        for value in valOutcomes.keys():
+            check = False
+            for child in nod.children[nod]:
+                if child == value:
+                    check = True
+            if check == False:
+                total = 0
+                highest = ["", 0]
+                for outcome in valOutcomes[value].keys():
+                    total += valOutcomes[value][outcome]
+                    if valOutcomes[value][outcome] > highest[1]:
+                        highest = [outcome, valOutcomes[value][outcome]]
+                nod.addChild(nod, val(highest[0], nod, value), value)
+                nod.children[nod][value].percent = math.floor(highest[1]/total*100)
+
+    for child in nod.children[nod].keys():
+        if nod.children[nod][child].typ == "att":
+            fillRow(nod.children[nod][child], ignore[:])
+    
+
 def level(obj, nod):
         if nod.typ == "val":
             return nod.outcome
@@ -310,7 +336,8 @@ def getChildren(s, nod):
             # print(s[attribute])
             s['children'][value] = {
                 "type": "val",
-                "outcome": out
+                "outcome": out,
+                "percent": child.percent
             }
         elif child.typ == 'att':
             att = child.attribute
@@ -325,6 +352,7 @@ def loadTree(o, nod):
     for key in o.keys():
         if o[key]['type'] == "val":
             nod.addChild(nod, val(o[key]['outcome'], nod, key), key)
+            nod.children[nod][key].percent = o[key]['percent']
         elif o[key]['type'] == "att":
             nod.addChild(nod, att(o[key]['attribute'], nod, key), key)
             loadTree(o[key]['children'], nod.children[nod][key])
@@ -347,23 +375,28 @@ while True:
         for fil in os.listdir("training"):
         	print (fil)
         try:
-            data_json = "training/"+input("\nSpecify file: ")
+            data_json = "training/films.json"
+            # data_json = "training/"+input("\nSpecify file: ")
             data = json.loads(open(data_json).read())
         except IOError:
             print ("\nFile does not exist\n")
         else:
-            show = input("show attributes (y/n): ")
+            show = ""
+            # show = input("show attributes (y/n): ")
             if show == 'y' or show == 'Y':
                 print ("\n")
                 for attribute in data[0].keys():
                     print(attribute)
                 print ("\n")
             # The success attribute
-            success = input("success attribute: ")
+            success = "Success/Failure"
+            # success = input("success attribute: ")
             # the index attribute (unique ID)
-            index = input("index attribute: ")
+            index = "Film"
+            # index = input("index attribute: ")
             while cmd != "quit":
-                cmd = input("attribute to ignore(type quit to skip): ")
+                cmd = "quit"
+                # cmd = input("attribute to ignore(type quit to skip): ")
                 if cmd != "quit":
                     ign.append(cmd)
             # get all the possible outcomes of the success attribute
